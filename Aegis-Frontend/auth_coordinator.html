@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <title>Aegis | Field Response Login</title>
+</head>
+
+<body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center">
+    <div class="w-full max-w-md p-8 bg-slate-900 rounded-2xl border border-emerald-500/20 shadow-2xl">
+        <div class="text-center mb-8">
+            <span class="material-symbols-outlined text-emerald-400 text-5xl mb-2">shield_person</span>
+            <h1 class="text-2xl font-bold">Field Response Login</h1>
+            <p class="text-slate-400 text-sm">State Coordinator Credentials Required</p>
+        </div>
+
+        <!-- Error banner (hidden by default) -->
+        <div id="errorBanner"
+            class="hidden mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center">
+        </div>
+
+        <form id="loginForm" class="space-y-5">
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Email
+                    Address</label>
+                <input type="email" name="email" id="email" required
+                    class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 focus:outline-none focus:border-emerald-500 transition"
+                    placeholder="coordinator@state.gov.ng">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Secure
+                    Password</label>
+                <input type="password" name="password" id="password" required
+                    class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 focus:outline-none focus:border-emerald-500 transition">
+            </div>
+            <button type="submit" id="submitBtn"
+                class="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-900 font-bold py-3 rounded-lg transition mt-4">
+                Verify & Enter Portal
+            </button>
+        </form>
+        <div class="mt-6 text-center">
+            <a href="login.html" class="text-slate-500 hover:text-slate-300 text-sm">Cancel and Return</a>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script>
+        // If already logged in as coordinator, go straight to dashboard
+        if (Auth.isLoggedIn() && Auth.getUser().role === 'coordinator') {
+            window.location.href = 'coordinator_dashboard.html';
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const btn = document.getElementById('submitBtn');
+            const errorBanner = document.getElementById('errorBanner');
+            errorBanner.classList.add('hidden');
+
+            btn.disabled = true;
+            btn.textContent = 'Authenticating...';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: document.getElementById('email').value,
+                        password: document.getElementById('password').value,
+                    }),
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.detail || 'Authentication failed');
+                }
+
+                const data = await response.json();
+
+                // Verify this is a coordinator account
+                if (data.role !== 'coordinator') {
+                    throw new Error('This portal is for State Coordinators only');
+                }
+
+                // Save token and redirect
+                Auth.save(data);
+                window.location.href = 'coordinator_dashboard.html';
+
+            } catch (err) {
+                errorBanner.textContent = err.message;
+                errorBanner.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Verify & Enter Portal';
+            }
+        });
+    </script>
+</body>
+
+</html>

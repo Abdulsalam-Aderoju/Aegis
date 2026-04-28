@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aegis | Map View</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'DM Sans', sans-serif; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        .nav-link.active { background: rgba(59, 130, 246, 0.1); border-left: 3px solid #3b82f6; color: #bfdbfe; }
+        .nav-link { border-left: 3px solid transparent; transition: all 0.2s; }
+        .nav-link:hover { background: rgba(255, 255, 255, 0.03); color: #e2e8f0; }
+
+        /* Map styling */
+        .state-path {
+            stroke: #1e293b;
+            stroke-width: 1.5;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .state-path:hover {
+            stroke: #f8fafc;
+            stroke-width: 2.5;
+            filter: brightness(1.3);
+        }
+
+        /* Tooltip */
+        #tooltip {
+            pointer-events: none;
+            transition: opacity 0.15s;
+        }
+
+        /* Risk colours */
+        .risk-fill-critical { fill: #dc2626; }
+        .risk-fill-high { fill: #ea580c; }
+        .risk-fill-moderate { fill: #ca8a04; }
+        .risk-fill-low { fill: #16a34a; }
+        .risk-fill-none { fill: #334155; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .fade-in { animation: fadeIn 0.5s ease-out; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-300 min-h-screen">
+    <div class="flex min-h-screen">
+
+        <!-- SIDEBAR -->
+        <aside class="w-64 bg-slate-900/60 border-r border-slate-800 flex flex-col fixed h-full">
+            <div class="px-6 py-6 border-b border-slate-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                        <span class="material-symbols-outlined text-blue-400 text-xl">monitoring</span>
+                    </div>
+                    <div>
+                        <h1 class="text-slate-100 font-bold text-base tracking-tight">AEGIS</h1>
+                        <p class="text-blue-400 text-[10px] font-semibold uppercase tracking-widest">Command Center</p>
+                    </div>
+                </div>
+            </div>
+            <nav class="flex-1 py-4 px-3 space-y-1">
+                <a href="federal_dashboard.html" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-r-lg text-sm text-slate-500">
+                    <span class="material-symbols-outlined text-lg">space_dashboard</span> National Overview
+                </a>
+                <a href="federal_map.html" class="nav-link active flex items-center gap-3 px-3 py-2.5 rounded-r-lg text-sm">
+                    <span class="material-symbols-outlined text-lg">map</span> Map View
+                </a>
+            </nav>
+            <div class="px-4 py-4 border-t border-slate-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 text-xs font-bold">FM</div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-slate-200 text-sm font-medium truncate" id="userName">—</p>
+                        <p class="text-slate-500 text-xs truncate">Federal Monitor</p>
+                    </div>
+                    <button onclick="Auth.logout()" class="text-slate-600 hover:text-red-400 transition">
+                        <span class="material-symbols-outlined text-lg">logout</span>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="flex-1 ml-64">
+            <header class="sticky top-0 z-10 bg-slate-950/80 backdrop-blur-md border-b border-slate-800 px-8 py-4 flex items-center justify-between">
+                <div>
+                    <h2 class="text-slate-100 text-lg font-semibold">National Risk Map</h2>
+                    <p class="text-slate-500 text-xs mt-0.5">Click any state to view its intelligence placard</p>
+                </div>
+                <!-- Legend -->
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-red-600"></span><span class="text-xs text-slate-400">Critical</span></div>
+                    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-orange-600"></span><span class="text-xs text-slate-400">High</span></div>
+                    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-yellow-600"></span><span class="text-xs text-slate-400">Moderate</span></div>
+                    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-green-600"></span><span class="text-xs text-slate-400">Low</span></div>
+                    <div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm bg-slate-700"></span><span class="text-xs text-slate-400">No data</span></div>
+                </div>
+            </header>
+
+            <div class="p-8 flex justify-center">
+                <div class="relative w-full max-w-4xl">
+
+                    <!-- TOOLTIP -->
+                    <div id="tooltip" class="fixed z-50 opacity-0 bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 shadow-xl max-w-xs">
+                        <p class="text-slate-100 font-semibold text-sm" id="tipName">—</p>
+                        <div class="flex gap-4 mt-1">
+                            <div>
+                                <p class="text-slate-500 text-[10px] uppercase">7-Day</p>
+                                <p class="text-slate-200 mono text-sm font-bold" id="tipWeek">—</p>
+                            </div>
+                            <div>
+                                <p class="text-slate-500 text-[10px] uppercase">Risk</p>
+                                <p class="text-sm font-semibold" id="tipRisk">—</p>
+                            </div>
+                            <div>
+                                <p class="text-slate-500 text-[10px] uppercase">Interventions</p>
+                                <p class="text-slate-300 text-xs" id="tipInterventions">—</p>
+                            </div>
+                        </div>
+                        <p class="text-blue-400 text-[10px] mt-2">Click to open placard →</p>
+                    </div>
+
+                    <!-- SVG MAP -->
+                    <svg id="nigeriaMap" viewBox="70 20 420 340" class="w-full h-auto fade-in">
+                        <!-- States will be injected by JS -->
+                    </svg>
+
+                    <!-- Loading overlay -->
+                    <div id="mapLoading" class="absolute inset-0 flex items-center justify-center bg-slate-950/50">
+                        <div class="text-center">
+                            <span class="material-symbols-outlined text-slate-600 text-3xl animate-spin">progress_activity</span>
+                            <p class="text-slate-500 text-sm mt-2">Loading map data...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script>
+        if (!Auth.requireRole('federal')) throw new Error('Unauthorized');
+        document.getElementById('userName').textContent = Auth.getUser().name;
+
+        // ==========================================
+        // SVG PATH DATA FOR ALL 37 STATES
+        // ==========================================
+        const STATE_PATHS = {
+            "Sokoto": "M145,45 L175,35 L195,55 L185,80 L160,85 L140,70 Z",
+            "Zamfara": "M185,80 L195,55 L220,50 L235,70 L225,95 L200,100 L185,95 Z",
+            "Katsina": "M235,70 L220,50 L250,35 L280,45 L285,75 L260,90 L240,85 Z",
+            "Jigawa": "M285,75 L280,45 L310,40 L340,55 L335,85 L305,90 Z",
+            "Yobe": "M335,85 L340,55 L370,50 L410,65 L400,95 L365,100 L345,95 Z",
+            "Borno": "M400,95 L410,65 L440,55 L470,80 L460,130 L430,160 L400,145 L390,120 Z",
+            "Kebbi": "M115,85 L145,70 L160,85 L185,95 L180,125 L155,140 L125,130 L110,110 Z",
+            "Niger": "M180,125 L200,100 L225,95 L250,110 L260,140 L250,170 L220,185 L190,175 L170,155 Z",
+            "Kaduna": "M260,90 L285,75 L305,90 L310,120 L295,145 L270,150 L255,135 L250,110 Z",
+            "Bauchi": "M310,120 L335,85 L345,95 L365,100 L370,130 L350,150 L325,145 Z",
+            "Gombe": "M365,100 L390,120 L385,145 L360,150 L350,150 L370,130 Z",
+            "Adamawa": "M385,145 L400,145 L430,160 L435,200 L415,230 L390,220 L375,190 L370,165 Z",
+            "Kano": "M260,90 L240,85 L260,70 L285,75 L305,90 L310,120 L295,110 L270,105 Z",
+            "FCT": "M250,170 L265,165 L275,180 L265,195 L250,190 Z",
+            "Nasarawa": "M275,180 L295,170 L320,175 L330,195 L310,210 L285,200 L275,190 Z",
+            "Plateau": "M295,145 L310,120 L325,145 L330,165 L320,175 L295,170 L285,155 Z",
+            "Taraba": "M350,150 L370,165 L375,190 L370,220 L345,235 L325,220 L330,195 L340,175 Z",
+            "Kwara": "M155,170 L190,175 L220,185 L215,210 L190,220 L160,215 L140,195 Z",
+            "Kogi": "M220,185 L250,190 L265,195 L275,215 L260,235 L235,230 L215,210 Z",
+            "Benue": "M310,210 L330,195 L345,235 L340,260 L310,265 L285,245 L280,225 Z",
+            "Oyo": "M120,210 L155,215 L160,215 L155,240 L140,260 L115,255 L105,235 Z",
+            "Osun": "M155,240 L160,215 L180,220 L185,240 L170,255 L155,250 Z",
+            "Ekiti": "M180,220 L190,220 L200,235 L195,250 L180,250 L175,240 Z",
+            "Ondo": "M155,250 L170,255 L185,240 L195,250 L190,275 L170,290 L145,280 L140,260 Z",
+            "Edo": "M195,250 L200,235 L215,245 L225,265 L215,285 L195,290 L190,275 Z",
+            "Enugu": "M260,235 L275,225 L290,240 L285,260 L270,270 L255,260 Z",
+            "Ebonyi": "M285,260 L300,255 L310,270 L300,285 L285,280 Z",
+            "Cross River": "M310,265 L325,260 L340,280 L335,310 L315,320 L300,305 L300,285 Z",
+            "Anambra": "M240,260 L255,260 L260,280 L250,290 L235,285 Z",
+            "Imo": "M235,285 L250,290 L250,305 L235,310 L225,300 Z",
+            "Abia": "M255,280 L270,270 L285,280 L280,300 L265,305 L250,305 L250,290 Z",
+            "Akwa Ibom": "M280,300 L300,305 L310,320 L295,335 L275,325 L270,310 Z",
+            "Rivers": "M235,310 L265,305 L270,310 L275,325 L255,335 L235,330 L225,315 Z",
+            "Bayelsa": "M210,310 L225,315 L235,330 L220,340 L205,330 Z",
+            "Delta": "M195,290 L215,285 L225,300 L235,310 L210,310 L200,305 Z",
+            "Lagos": "M90,260 L115,255 L120,270 L110,280 L90,275 Z",
+            "Ogun": "M105,235 L115,255 L140,260 L145,280 L130,285 L110,280 L90,260 Z",
+        };
+
+        // Label positions (approximate centre of each state)
+        const STATE_LABELS = {
+            "Sokoto": [167, 58], "Zamfara": [207, 75], "Katsina": [258, 62],
+            "Jigawa": [312, 65], "Yobe": [370, 75], "Borno": [430, 105],
+            "Kebbi": [148, 110], "Niger": [215, 150], "Kaduna": [278, 115],
+            "Bauchi": [340, 120], "Gombe": [372, 128], "Adamawa": [405, 190],
+            "Kano": [280, 95], "FCT": [260, 180], "Nasarawa": [300, 190],
+            "Plateau": [310, 155], "Taraba": [355, 190], "Kwara": [178, 195],
+            "Kogi": [245, 210], "Benue": [315, 235], "Oyo": [130, 240],
+            "Osun": [168, 238], "Ekiti": [188, 238], "Ondo": [168, 268],
+            "Edo": [208, 268], "Enugu": [272, 252], "Ebonyi": [295, 270],
+            "Cross River": [320, 290], "Anambra": [248, 272], "Imo": [238, 298],
+            "Abia": [265, 292], "Akwa Ibom": [290, 318], "Rivers": [252, 320],
+            "Bayelsa": [218, 325], "Delta": [212, 298], "Lagos": [102, 268],
+            "Ogun": [120, 262],
+        };
+
+        // ==========================================
+        // STATE DATA & MAP RENDERING
+        // ==========================================
+        let statesData = {};
+
+        async function loadMapData() {
+            try {
+                const response = await Auth.fetch('/api/federal/states');
+                if (!response.ok) throw new Error('Failed');
+                const data = await response.json();
+
+                // Index by state name for fast lookup
+                data.states.forEach(s => { statesData[s.state] = s; });
+
+                renderMap();
+                document.getElementById('mapLoading').classList.add('hidden');
+            } catch (err) {
+                document.getElementById('mapLoading').innerHTML = `
+                    <div class="text-center">
+                        <span class="material-symbols-outlined text-red-400 text-3xl">error</span>
+                        <p class="text-slate-400 text-sm mt-2">Failed to load map data</p>
+                    </div>`;
+            }
+        }
+
+        function getRiskColor(risk) {
+            const colors = {
+                critical: '#dc2626',
+                high: '#ea580c',
+                moderate: '#ca8a04',
+                low: '#16a34a',
+            };
+            return colors[risk] || '#334155';
+        }
+
+        function getRiskTextClass(risk) {
+            const classes = {
+                critical: 'color: #fca5a5',
+                high: 'color: #fdba74',
+                moderate: 'color: #fde047',
+                low: 'color: #86efac',
+            };
+            return classes[risk] || 'color: #94a3b8';
+        }
+
+        function renderMap() {
+            const svg = document.getElementById('nigeriaMap');
+            let paths = '';
+            let labels = '';
+
+            for (const [state, d] of Object.entries(STATE_PATHS)) {
+                const data = statesData[state];
+                const risk = data ? data.risk_level : 'none';
+                const fill = getRiskColor(risk);
+
+                paths += `<path 
+                    class="state-path" 
+                    d="${d}" 
+                    fill="${fill}" 
+                    data-state="${state}"
+                    onmousemove="showTooltip(event, '${state}')"
+                    onmouseleave="hideTooltip()"
+                    onclick="navigateToState('${state}')"
+                />`;
+
+                // Small labels for larger states
+                const pos = STATE_LABELS[state];
+                if (pos) {
+                    const fontSize = ['Lagos', 'FCT', 'Ebonyi', 'Imo', 'Anambra', 'Bayelsa', 'Ekiti', 'Osun'].includes(state) ? 5 : 6;
+                    labels += `<text x="${pos[0]}" y="${pos[1]}" 
+                        text-anchor="middle" 
+                        fill="#f8fafc" 
+                        font-size="${fontSize}" 
+                        font-family="DM Sans, sans-serif"
+                        font-weight="500"
+                        pointer-events="none"
+                        opacity="0.7"
+                    >${state === 'Cross River' ? 'C. River' : state === 'Akwa Ibom' ? 'A. Ibom' : state}</text>`;
+                }
+            }
+
+            svg.innerHTML = paths + labels;
+        }
+
+        // ==========================================
+        // TOOLTIP
+        // ==========================================
+        function showTooltip(event, state) {
+            const tip = document.getElementById('tooltip');
+            const data = statesData[state];
+
+            document.getElementById('tipName').textContent = state;
+
+            if (data) {
+                document.getElementById('tipWeek').textContent = data.week_total.toLocaleString();
+                document.getElementById('tipRisk').textContent = data.risk_level.toUpperCase();
+                document.getElementById('tipRisk').style = getRiskTextClass(data.risk_level);
+
+                const interventions = [];
+                if (data.mask_mandate) interventions.push('Mask');
+                if (data.lockdown) interventions.push('Lockdown');
+                if (data.school_closure) interventions.push('School');
+                document.getElementById('tipInterventions').textContent = interventions.length > 0 ? interventions.join(', ') : 'None';
+            } else {
+                document.getElementById('tipWeek').textContent = '—';
+                document.getElementById('tipRisk').textContent = 'NO DATA';
+                document.getElementById('tipRisk').style = 'color: #64748b';
+                document.getElementById('tipInterventions').textContent = '—';
+            }
+
+            tip.style.left = (event.clientX + 16) + 'px';
+            tip.style.top = (event.clientY - 10) + 'px';
+            tip.style.opacity = '1';
+        }
+
+        function hideTooltip() {
+            document.getElementById('tooltip').style.opacity = '0';
+        }
+
+        // ==========================================
+        // NAVIGATION
+        // ==========================================
+        function navigateToState(state) {
+            window.location.href = `federal_state_detail.html?state=${encodeURIComponent(state)}`;
+        }
+
+        loadMapData();
+    </script>
+</body>
+</html>

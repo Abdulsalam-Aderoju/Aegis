@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aegis | Daily Submission</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'DM Sans', sans-serif; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+        .slide-up { animation: slideUp 0.4s ease-out forwards; opacity: 0; }
+        .slide-up:nth-child(1) { animation-delay: 0.05s; }
+        .slide-up:nth-child(2) { animation-delay: 0.1s; }
+        .slide-up:nth-child(3) { animation-delay: 0.15s; }
+        .nav-link.active { background: rgba(16, 185, 129, 0.1); border-left: 3px solid #10b981; color: #d1fae5; }
+        .nav-link { border-left: 3px solid transparent; transition: all 0.2s; }
+        .nav-link:hover { background: rgba(255, 255, 255, 0.03); color: #e2e8f0; }
+        .toggle-track { width: 44px; height: 24px; background: #1e293b; border: 1px solid #334155; border-radius: 12px; position: relative; cursor: pointer; transition: all 0.3s; }
+        .toggle-track.active { background: rgba(16, 185, 129, 0.3); border-color: #10b981; }
+        .toggle-knob { width: 18px; height: 18px; background: #64748b; border-radius: 50%; position: absolute; top: 2px; left: 2px; transition: all 0.3s; }
+        .toggle-track.active .toggle-knob { transform: translateX(20px); background: #10b981; }
+        @keyframes modalIn { from { opacity: 0; transform: scale(0.9) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+        .modal-content { animation: modalIn 0.3s ease-out; }
+        input[type="number"]:focus, input[type="date"]:focus, textarea:focus { box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.15); }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-300 min-h-screen">
+    <div class="flex min-h-screen">
+
+        <!-- SIDEBAR -->
+        <aside class="w-64 bg-slate-900/60 border-r border-slate-800 flex flex-col fixed h-full">
+            <div class="px-6 py-6 border-b border-slate-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 bg-emerald-500/20 rounded-lg flex items-center justify-center">
+                        <span class="material-symbols-outlined text-emerald-400 text-xl">shield</span>
+                    </div>
+                    <div>
+                        <h1 class="text-slate-100 font-bold text-base tracking-tight">AEGIS</h1>
+                        <p class="text-emerald-400 text-[10px] font-semibold uppercase tracking-widest">Field Response</p>
+                    </div>
+                </div>
+            </div>
+            <nav class="flex-1 py-4 px-3 space-y-1">
+                <a href="coordinator_dashboard.html" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-r-lg text-sm text-slate-500">
+                    <span class="material-symbols-outlined text-lg">space_dashboard</span> Dashboard
+                </a>
+                <a href="coordinator_submit.html" class="nav-link active flex items-center gap-3 px-3 py-2.5 rounded-r-lg text-sm">
+                    <span class="material-symbols-outlined text-lg">add_circle</span> Daily Submission
+                </a>
+                <a href="coordinator_history.html" class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-r-lg text-sm text-slate-500">
+                    <span class="material-symbols-outlined text-lg">history</span> Submission History
+                </a>
+            </nav>
+            <div class="px-4 py-4 border-t border-slate-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-xs font-bold" id="userInitials">--</div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-slate-200 text-sm font-medium truncate" id="userName">—</p>
+                        <p class="text-slate-500 text-xs truncate" id="userState">—</p>
+                    </div>
+                    <button onclick="Auth.logout()" class="text-slate-600 hover:text-red-400 transition">
+                        <span class="material-symbols-outlined text-lg">logout</span>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="flex-1 ml-64">
+            <header class="sticky top-0 z-10 bg-slate-950/80 backdrop-blur-md border-b border-slate-800 px-8 py-4">
+                <div class="flex items-center gap-3">
+                    <a href="coordinator_dashboard.html" class="text-slate-500 hover:text-slate-300 transition">
+                        <span class="material-symbols-outlined text-lg">arrow_back</span>
+                    </a>
+                    <div>
+                        <h2 class="text-slate-100 text-lg font-semibold">Daily Case Submission</h2>
+                        <p class="text-slate-500 text-xs mt-0.5">Report today's outbreak data for <span id="headerState">your state</span></p>
+                    </div>
+                </div>
+            </header>
+
+            <div class="p-8 max-w-3xl">
+                <form id="submissionForm" class="space-y-8">
+                    <!-- CASE DATA -->
+                    <section class="slide-up bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+                        <div class="flex items-center gap-2 mb-5">
+                            <span class="material-symbols-outlined text-emerald-400">coronavirus</span>
+                            <h3 class="text-slate-100 font-semibold">Case Data</h3>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div>
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Reporting Date</label>
+                                <input type="date" name="date" id="reportDate" required class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-slate-100 focus:outline-none focus:border-emerald-500 transition mono text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">New Confirmed Cases</label>
+                                <input type="number" name="new_cases" id="newCases" min="0" required placeholder="0" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-slate-100 focus:outline-none focus:border-emerald-500 transition mono text-sm">
+                                <p class="text-slate-600 text-xs mt-1.5">Lab-confirmed positive results reported today</p>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- INTERVENTIONS -->
+                    <section class="slide-up bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="material-symbols-outlined text-amber-400">policy</span>
+                            <h3 class="text-slate-100 font-semibold">Intervention Status</h3>
+                        </div>
+                        <p class="text-slate-500 text-xs mb-5">Which public health measures are currently active in your state today?</p>
+
+                        <div class="flex items-center justify-between py-4 border-b border-slate-800/50">
+                            <div class="flex items-center gap-3">
+                                <span class="material-symbols-outlined text-slate-500 text-lg">masks</span>
+                                <div><p class="text-slate-200 text-sm font-medium">Mask Mandate</p><p class="text-slate-500 text-xs">Public masking requirement enforced</p></div>
+                            </div>
+                            <div class="toggle-track" data-field="mask_mandate" onclick="toggleSwitch(this)"><div class="toggle-knob"></div></div>
+                            <input type="hidden" name="mask_mandate" value="0">
+                        </div>
+                        <div class="flex items-center justify-between py-4 border-b border-slate-800/50">
+                            <div class="flex items-center gap-3">
+                                <span class="material-symbols-outlined text-slate-500 text-lg">lock</span>
+                                <div><p class="text-slate-200 text-sm font-medium">Lockdown</p><p class="text-slate-500 text-xs">Movement restrictions and business closures</p></div>
+                            </div>
+                            <div class="toggle-track" data-field="lockdown" onclick="toggleSwitch(this)"><div class="toggle-knob"></div></div>
+                            <input type="hidden" name="lockdown" value="0">
+                        </div>
+                        <div class="flex items-center justify-between py-4">
+                            <div class="flex items-center gap-3">
+                                <span class="material-symbols-outlined text-slate-500 text-lg">school</span>
+                                <div><p class="text-slate-200 text-sm font-medium">School Closure</p><p class="text-slate-500 text-xs">Primary and secondary schools closed</p></div>
+                            </div>
+                            <div class="toggle-track" data-field="school_closure" onclick="toggleSwitch(this)"><div class="toggle-knob"></div></div>
+                            <input type="hidden" name="school_closure" value="0">
+                        </div>
+                    </section>
+
+                    <!-- OPTIONAL -->
+                    <section class="slide-up bg-slate-900/50 border border-slate-800 rounded-xl p-6">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="material-symbols-outlined text-blue-400">note_add</span>
+                            <h3 class="text-slate-100 font-semibold">Additional Context</h3>
+                            <span class="text-slate-600 text-xs ml-1">(Optional)</span>
+                        </div>
+                        <p class="text-slate-500 text-xs mb-5">Situational notes to help the federal team interpret the data.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                            <div>
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Daily Vaccinations</label>
+                                <input type="number" name="daily_vaccinations" min="0" placeholder="0" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-slate-100 focus:outline-none focus:border-emerald-500 transition mono text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Tests Conducted</label>
+                                <input type="number" name="tests_conducted" min="0" placeholder="0" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-slate-100 focus:outline-none focus:border-emerald-500 transition mono text-sm">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Field Notes</label>
+                            <textarea name="notes" rows="3" placeholder="e.g. Testing kits running low, new cluster at Alaba market..." class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-slate-100 focus:outline-none focus:border-emerald-500 transition text-sm resize-none"></textarea>
+                        </div>
+                    </section>
+
+                    <!-- CONTROLS -->
+                    <div class="flex items-center justify-between">
+                        <a href="coordinator_dashboard.html" class="text-slate-500 hover:text-slate-300 text-sm transition">Cancel</a>
+                        <button type="submit" id="submitBtn" class="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-slate-900 font-semibold text-sm px-6 py-2.5 rounded-lg transition">
+                            <span class="material-symbols-outlined text-lg">send</span> Submit Report
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <!-- SUCCESS MODAL -->
+    <div id="successModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm">
+        <div class="modal-content bg-slate-900 border border-emerald-500/20 rounded-2xl p-8 max-w-sm w-full text-center">
+            <div class="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span class="material-symbols-outlined text-emerald-400 text-3xl">check_circle</span>
+            </div>
+            <h3 class="text-slate-100 text-lg font-bold mb-2">Report Submitted</h3>
+            <p class="text-slate-400 text-sm mb-6">Your daily case data has been recorded and will be included in the next forecast cycle.</p>
+            <div class="flex gap-3 justify-center">
+                <a href="coordinator_dashboard.html" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-sm font-medium transition">Back to Dashboard</a>
+                <button onclick="resetForm()" class="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-slate-900 rounded-lg text-sm font-semibold transition">Submit Another</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script>
+        if (!Auth.requireRole('coordinator')) throw new Error('Unauthorized');
+
+        const user = Auth.getUser();
+        document.getElementById('userName').textContent = user.name;
+        document.getElementById('userState').textContent = `${user.state} State Coordinator`;
+        document.getElementById('userInitials').textContent = Auth.getInitials();
+        document.getElementById('headerState').textContent = user.state;
+
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('reportDate').value = today;
+
+        function toggleSwitch(el) {
+            const isActive = el.classList.toggle('active');
+            el.nextElementSibling.value = isActive ? '1' : '0';
+        }
+
+        document.getElementById('submissionForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="material-symbols-outlined text-lg animate-spin">progress_activity</span> Submitting...';
+
+            const formData = new FormData(e.target);
+            const payload = Object.fromEntries(formData.entries());
+            payload.new_cases = parseInt(payload.new_cases) || 0;
+            payload.mask_mandate = parseInt(payload.mask_mandate);
+            payload.lockdown = parseInt(payload.lockdown);
+            payload.school_closure = parseInt(payload.school_closure);
+            payload.daily_vaccinations = parseInt(payload.daily_vaccinations) || 0;
+            payload.tests_conducted = parseInt(payload.tests_conducted) || 0;
+
+            try {
+                const response = await Auth.fetch('/api/coordinator/submit', {
+                    method: 'POST',
+                    body: JSON.stringify(payload),
+                });
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.detail || 'Submission failed');
+                }
+                document.getElementById('successModal').classList.remove('hidden');
+            } catch (err) {
+                alert('Submission error: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span class="material-symbols-outlined text-lg">send</span> Submit Report';
+            }
+        });
+
+        function resetForm() {
+            document.getElementById('submissionForm').reset();
+            document.getElementById('reportDate').value = today;
+            document.getElementById('successModal').classList.add('hidden');
+            document.querySelectorAll('.toggle-track').forEach(t => { t.classList.remove('active'); t.nextElementSibling.value = '0'; });
+        }
+    </script>
+</body>
+</html>

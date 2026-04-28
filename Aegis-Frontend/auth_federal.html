@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <title>Aegis | Command Center Login</title>
+</head>
+
+<body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center">
+    <div class="w-full max-w-md p-8 bg-slate-900 rounded-2xl border border-blue-500/20 shadow-2xl">
+        <div class="text-center mb-8">
+            <span class="material-symbols-outlined text-blue-400 text-5xl mb-2">admin_panel_settings</span>
+            <h1 class="text-2xl font-bold">Command Center Login</h1>
+            <p class="text-slate-400 text-sm">FMT High-Level Access Required</p>
+        </div>
+
+        <div id="errorBanner"
+            class="hidden mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center">
+        </div>
+
+        <form id="loginForm" class="space-y-5">
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Authorized
+                    Email</label>
+                <input type="email" name="email" id="email" required
+                    class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500 transition"
+                    placeholder="admin@fmt.gov.ng">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2">Secure
+                    Password</label>
+                <input type="password" name="password" id="password" required
+                    class="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 focus:outline-none focus:border-blue-500 transition">
+            </div>
+            <button type="submit" id="submitBtn"
+                class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 rounded-lg transition mt-4">
+                Authenticate Access
+            </button>
+        </form>
+        <div class="mt-6 text-center">
+            <a href="login.html" class="text-slate-500 hover:text-slate-300 text-sm">Cancel and Return</a>
+        </div>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script>
+        if (Auth.isLoggedIn() && Auth.getUser().role === 'federal') {
+            window.location.href = 'federal_dashboard.html';
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const btn = document.getElementById('submitBtn');
+            const errorBanner = document.getElementById('errorBanner');
+            errorBanner.classList.add('hidden');
+
+            btn.disabled = true;
+            btn.textContent = 'Authenticating...';
+
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: document.getElementById('email').value,
+                        password: document.getElementById('password').value,
+                    }),
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.detail || 'Authentication failed');
+                }
+
+                const data = await response.json();
+
+                if (data.role !== 'federal') {
+                    throw new Error('This portal is for Federal Monitoring Teams only');
+                }
+
+                Auth.save(data);
+                window.location.href = 'federal_dashboard.html';
+
+            } catch (err) {
+                errorBanner.textContent = err.message;
+                errorBanner.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Authenticate Access';
+            }
+        });
+    </script>
+</body>
+
+</html>

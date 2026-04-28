@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aegis | State Intelligence</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        body {
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide-up {
+            animation: slideUp 0.35s ease-out forwards;
+            opacity: 0;
+        }
+
+        .slide-up:nth-child(1) {
+            animation-delay: 0.05s;
+        }
+
+        .slide-up:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .slide-up:nth-child(3) {
+            animation-delay: 0.15s;
+        }
+
+        .nav-link.active {
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 3px solid #3b82f6;
+            color: #bfdbfe;
+        }
+
+        .nav-link {
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.03);
+            color: #e2e8f0;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-950 text-slate-300 min-h-screen">
+    <div class="flex min-h-screen">
+
+        <!-- SIDEBAR -->
+        <aside class="w-64 bg-slate-900/60 border-r border-slate-800 flex flex-col fixed h-full">
+            <div class="px-6 py-6 border-b border-slate-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                        <span class="material-symbols-outlined text-blue-400 text-xl">monitoring</span>
+                    </div>
+                    <div>
+                        <h1 class="text-slate-100 font-bold text-base tracking-tight">AEGIS</h1>
+                        <p class="text-blue-400 text-[10px] font-semibold uppercase tracking-widest">Command Center</p>
+                    </div>
+                </div>
+            </div>
+            <nav class="flex-1 py-4 px-3 space-y-1">
+                <a href="federal_dashboard.html"
+                    class="nav-link active flex items-center gap-3 px-3 py-2.5 rounded-r-lg text-sm">
+                    <span class="material-symbols-outlined text-lg">space_dashboard</span> National Overview
+                </a>
+                <a href="federal_map.html"
+                    class="nav-link flex items-center gap-3 px-3 py-2.5 rounded-r-lg text-sm text-slate-500">
+                    <span class="material-symbols-outlined text-lg">map</span> Map View
+                </a>
+            </nav>
+            <div class="px-4 py-4 border-t border-slate-800">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 text-xs font-bold">
+                        FM</div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-slate-200 text-sm font-medium truncate" id="userName">—</p>
+                        <p class="text-slate-500 text-xs truncate">Federal Monitor</p>
+                    </div>
+                    <button onclick="Auth.logout()" class="text-slate-600 hover:text-red-400 transition">
+                        <span class="material-symbols-outlined text-lg">logout</span>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="flex-1 ml-64">
+            <header class="sticky top-0 z-10 bg-slate-950/80 backdrop-blur-md border-b border-slate-800 px-8 py-4">
+                <div class="flex items-center gap-3">
+                    <a href="federal_dashboard.html" class="text-slate-500 hover:text-slate-300 transition">
+                        <span class="material-symbols-outlined text-lg">arrow_back</span>
+                    </a>
+                    <div>
+                        <h2 class="text-slate-100 text-lg font-semibold" id="stateTitle">Loading...</h2>
+                        <p class="text-slate-500 text-xs mt-0.5">State intelligence placard</p>
+                    </div>
+                    <div class="ml-auto" id="riskBadge"></div>
+                </div>
+            </header>
+
+            <div class="p-8" id="content">
+
+                <!-- LOADING -->
+                <div id="loading" class="text-center py-20">
+                    <span
+                        class="material-symbols-outlined text-slate-700 text-4xl animate-spin">progress_activity</span>
+                    <p class="text-slate-500 text-sm mt-3">Loading state data...</p>
+                </div>
+
+                <!-- METRICS (hidden until loaded) -->
+                <div id="metricsSection" class="hidden">
+
+                    <!-- TOP METRICS -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+                        <div class="slide-up bg-slate-900/50 border border-slate-800 rounded-xl p-5">
+                            <p class="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">7-Day Cases
+                            </p>
+                            <p class="text-slate-100 text-2xl font-bold mono" id="weekCases">—</p>
+                        </div>
+                        <div class="slide-up bg-slate-900/50 border border-slate-800 rounded-xl p-5">
+                            <p class="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">Cumulative</p>
+                            <p class="text-slate-100 text-2xl font-bold mono" id="cumCases">—</p>
+                        </div>
+                        <div class="slide-up bg-slate-900/50 border border-slate-800 rounded-xl p-5">
+                            <p class="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">Population</p>
+                            <p class="text-slate-100 text-2xl font-bold mono" id="population">—</p>
+                        </div>
+                        <div class="slide-up bg-slate-900/50 border border-slate-800 rounded-xl p-5">
+                            <p class="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-2">Peak Day</p>
+                            <p class="text-slate-100 text-lg font-bold mono" id="peakDay">—</p>
+                            <p class="text-slate-500 text-xs" id="peakCases"></p>
+                        </div>
+                    </div>
+
+                    <!-- CURRENT INTERVENTIONS -->
+                    <div class="slide-up bg-slate-900/50 border border-slate-800 rounded-xl p-5 mb-8">
+                        <h3 class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-4">Current
+                            Interventions</h3>
+                        <div class="flex gap-4" id="interventionStatus">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- 30-DAY TREND CHART -->
+                    <div class="slide-up bg-slate-900/50 border border-slate-800 rounded-xl p-5 mb-8">
+                        <h3 class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-4">30-Day Case Trend
+                        </h3>
+                        <div class="flex items-end gap-[2px] h-40" id="trendChart">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- 30-DAY FORECAST (MACHINE LEARNING) -->
+                    <div
+                        class="slide-up bg-slate-900/50 border-t-2 border-t-blue-500 border-x border-b border-slate-800 rounded-xl p-5 mb-8">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-2">
+                                <span class="material-symbols-outlined text-blue-400">query_stats</span>
+                                <h3 class="text-slate-100 font-bold uppercase tracking-wider">30-Day Predictive Forecast
+                                </h3>
+                            </div>
+                            <div class="flex flex-wrap gap-2 justify-end">
+                                <button onclick="loadForecast('status_quo')"
+                                    class="text-[10px] px-2 py-1 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 transition ring-1 ring-blue-400 text-blue-400"
+                                    id="btn-status_quo">Status Quo</button>
+                                <button onclick="loadForecast('mask_only')"
+                                    class="text-[10px] px-2 py-1 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 transition"
+                                    id="btn-mask_only">Masks Only</button>
+                                <button onclick="loadForecast('national_lockdown')"
+                                    class="text-[10px] px-2 py-1 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 transition"
+                                    id="btn-national_lockdown">National Lockdown</button>
+                                <button onclick="loadForecast('no_interventions')"
+                                    class="text-[10px] px-2 py-1 rounded bg-slate-800 text-slate-300 hover:bg-slate-700 transition"
+                                    id="btn-no_interventions">No Interventions</button>
+                            </div>
+                        </div>
+
+                        <div id="forecastLoading" class="hidden py-10 text-center">
+                            <span class="material-symbols-outlined animate-spin text-blue-400 text-3xl">sync</span>
+                            <p class="text-slate-500 text-xs mt-2">Running SEIR simulation...</p>
+                        </div>
+
+                        <div id="forecastContent" class="flex flex-col gap-4">
+                            <div class="flex items-center justify-between">
+                                <p class="text-slate-400 text-sm flex-1">Projected state daily cases based on MCMC
+                                    posterior sampling.</p>
+                                <div class="text-right">
+                                    <p class="text-slate-500 text-[10px] uppercase tracking-wider">Peak Projection (30d)
+                                    </p>
+                                    <p class="text-blue-400 font-bold mono text-xl" id="forecastPeak">—</p>
+                                </div>
+                            </div>
+                            <div class="flex items-end gap-[2px] h-24 mt-2" id="forecastBars">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- INTERVENTION TIMELINE -->
+                    <div class="slide-up bg-slate-900/50 border border-slate-800 rounded-xl p-5 mb-8">
+                        <h3 class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-4">Intervention
+                            Timeline (30 Days)</h3>
+                        <div class="space-y-3" id="interventionTimeline">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- LAST REPORTED -->
+                    <div class="text-slate-600 text-xs text-center mt-8">
+                        Last report received: <span class="mono" id="lastReported">—</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/auth.js"></script>
+    <script>
+        if (!Auth.requireRole('federal')) throw new Error('Unauthorized');
+        document.getElementById('userName').textContent = Auth.getUser().name;
+
+        // Get state from URL
+        const params = new URLSearchParams(window.location.search);
+        const stateName = params.get('state');
+
+        if (!stateName) {
+            window.location.href = 'federal_dashboard.html';
+        }
+
+        document.getElementById('stateTitle').textContent = stateName;
+
+        async function loadStateDetail() {
+            try {
+                const response = await Auth.fetch(`/api/federal/states/${encodeURIComponent(stateName)}`);
+                if (!response.ok) throw new Error('Failed to load');
+                const data = await response.json();
+                renderDetail(data);
+
+                // Initial forecast load
+                loadForecast("status_quo");
+            } catch (err) {
+                document.getElementById('loading').innerHTML = `
+                    <span class="material-symbols-outlined text-red-400 text-4xl">error</span>
+                    <p class="text-slate-400 text-sm mt-3">Failed to load data for ${stateName}</p>
+                    <a href="federal_dashboard.html" class="text-blue-400 text-sm mt-2 inline-block">← Back to overview</a>
+                `;
+            }
+        }
+
+        function renderDetail(data) {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('metricsSection').classList.remove('hidden');
+
+            // Risk badge
+            const riskColors = {
+                critical: 'bg-red-500/10 text-red-400 border-red-500/30',
+                high: 'bg-orange-500/10 text-orange-400 border-orange-500/30',
+                moderate: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30',
+                low: 'bg-green-500/10 text-green-400 border-green-500/30',
+            };
+            const rc = riskColors[data.risk_level] || riskColors.low;
+            document.getElementById('riskBadge').innerHTML = `<span class="px-3 py-1 rounded-full text-xs font-semibold uppercase border ${rc}">${data.risk_level} Risk</span>`;
+
+            // Metrics
+            document.getElementById('weekCases').textContent = data.week_total.toLocaleString();
+            document.getElementById('cumCases').textContent = data.cumulative_cases.toLocaleString();
+            document.getElementById('population').textContent = data.population.toLocaleString();
+            document.getElementById('peakDay').textContent = data.peak_day || '—';
+            document.getElementById('peakCases').textContent = data.peak_cases ? `${data.peak_cases.toLocaleString()} cases` : '';
+            document.getElementById('lastReported').textContent = data.last_reported || 'No reports';
+
+            // Current interventions
+            const ci = data.current_interventions;
+            const interventions = [
+                { name: 'Mask Mandate', icon: 'masks', active: ci.mask_mandate },
+                { name: 'Lockdown', icon: 'lock', active: ci.lockdown },
+                { name: 'School Closure', icon: 'school', active: ci.school_closure },
+            ];
+            document.getElementById('interventionStatus').innerHTML = interventions.map(i => `
+                <div class="flex items-center gap-2 px-4 py-2.5 rounded-lg border ${i.active ? 'bg-amber-500/5 border-amber-500/20' : 'bg-slate-800/50 border-slate-700'}">
+                    <span class="material-symbols-outlined text-base ${i.active ? 'text-amber-400' : 'text-slate-600'}">${i.icon}</span>
+                    <span class="text-sm ${i.active ? 'text-amber-300 font-medium' : 'text-slate-500'}">${i.name}</span>
+                    <span class="text-[10px] font-semibold uppercase ml-1 ${i.active ? 'text-amber-400' : 'text-slate-600'}">${i.active ? 'ACTIVE' : 'OFF'}</span>
+                </div>
+            `).join('');
+
+            // 30-day trend chart
+            const trend = data.daily_trend_30d || [];
+            if (trend.length > 0) {
+                const max = Math.max(...trend.map(t => t.cases), 1);
+                document.getElementById('trendChart').innerHTML = trend.map(t => {
+                    const h = Math.max(2, (t.cases / max) * 160);
+                    const isToday = t.date === new Date().toISOString().split('T')[0];
+                    return `<div class="flex-1 group relative">
+                        <div class="w-full ${isToday ? 'bg-blue-400' : 'bg-blue-500/40'} rounded-sm transition hover:bg-blue-400" style="height:${h}px"
+                             title="${t.date}: ${t.cases} cases"></div>
+                    </div>`;
+                }).join('');
+            }
+
+            // Intervention timeline (visual bars)
+            const timeline = data.intervention_timeline || [];
+            if (timeline.length > 0) {
+                const types = [
+                    { key: 'mask_mandate', label: 'Mask Mandate', color: 'bg-blue-500' },
+                    { key: 'lockdown', label: 'Lockdown', color: 'bg-red-500' },
+                    { key: 'school_closure', label: 'School Closure', color: 'bg-amber-500' },
+                ];
+                document.getElementById('interventionTimeline').innerHTML = types.map(type => {
+                    const bars = timeline.map(day => {
+                        const active = day[type.key];
+                        return `<div class="flex-1 h-3 rounded-sm ${active ? type.color + '/60' : 'bg-slate-800'}" title="${day.date}: ${active ? 'Active' : 'Inactive'}"></div>`;
+                    }).join('');
+                    return `
+                        <div>
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-slate-400 text-xs">${type.label}</span>
+                                <span class="text-slate-600 text-[10px] mono">${timeline.length} days</span>
+                            </div>
+                            <div class="flex gap-[1px]">${bars}</div>
+                        </div>`;
+                }).join('');
+            }
+        }
+
+        async function loadForecast(scenario) {
+            document.querySelectorAll('[id^="btn-"]').forEach(btn => btn.classList.remove('ring-1', 'ring-blue-400', 'text-blue-400'));
+            const activeBtn = document.getElementById('btn-' + scenario);
+            if (activeBtn) activeBtn.classList.add('ring-1', 'ring-blue-400', 'text-blue-400');
+
+            document.getElementById('forecastContent').classList.add('hidden');
+            document.getElementById('forecastLoading').classList.remove('hidden');
+
+            try {
+                const res = await Auth.fetch('/api/federal/forecast', {
+                    method: 'POST',
+                    body: JSON.stringify({ days: 30, scenario: scenario })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    renderForecast(data);
+                } else {
+                    console.error('Forecast failed', await res.text());
+                }
+            } catch (err) {
+                console.error('Forecast error:', err);
+            } finally {
+                document.getElementById('forecastLoading').classList.add('hidden');
+                document.getElementById('forecastContent').classList.remove('hidden');
+            }
+        }
+
+        function renderForecast(data) {
+            const barsContainer = document.getElementById('forecastBars');
+
+            // Extract the specific state's forecast data
+            const stateData = data.states[stateName];
+            if (!stateData) {
+                barsContainer.innerHTML = '<p class="text-slate-500 text-sm">No forecast data available for this state.</p>';
+                document.getElementById('forecastPeak').textContent = '—';
+                return;
+            }
+
+            const median_data = stateData.median;
+            const maxMedian = Math.max(...median_data, 1);
+            const peakVal = Math.max(...median_data);
+            document.getElementById('forecastPeak').textContent = Math.round(peakVal).toLocaleString();
+
+            barsContainer.innerHTML = median_data.map((val, idx) => {
+                const h = Math.max(4, (val / maxMedian) * 96); // 96px is h-24
+                const isPeak = val === peakVal;
+                const barColor = isPeak ? 'bg-red-400/80' : 'bg-blue-500/40 hover:bg-blue-400/60';
+
+                return `<div class="flex flex-col items-center flex-1 group relative cursor-crosshair">
+                    <div class="w-full ${barColor} rounded-t-sm transition-all" style="height:${h}px"></div>
+                    
+                    <!-- Tooltip -->
+                    <div class="absolute bottom-full mb-2 hidden group-hover:block bg-slate-800 text-slate-200 text-[10px] py-1 px-2 rounded whitespace-nowrap z-10 border border-slate-700 shadow-xl">
+                        Day ${data.days[idx]}<br/>
+                        <span class="text-blue-300 font-bold">${Math.round(val).toLocaleString()}</span> cases
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        loadStateDetail();
+    </script>
+</body>
+
+</html>

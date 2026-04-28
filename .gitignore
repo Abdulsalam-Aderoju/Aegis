@@ -1,0 +1,18 @@
+Aegis-Backend/__pycache__/
+Aegis-Backend/aegis/
+Aegis-Backend/.env
+
+# Python
+Aegis-Backend/*.pyc
+Aegis-Backend/*.pyo
+
+# OS
+.DS_Store
+Thumbs.db
+
+
+Aegis-Terraform/.terraform/
+Aegis-Terraform/.terraform.lock.hcl
+Aegis-Terraform/terraform.tfstate.backup
+Aegis-Terraform/terraform.tfvars
+Aegis-Terraform/terraform.tfstate

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>Aegis | National Outbreak Intelligence</title>
+    <meta content="width=device-width, initial-scale=1" name="viewport" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <!-- <link href="/static/style.css" rel="stylesheet" type="text/css"/> -->
+
+    <script type="text/javascript">
+        // Standard Webfont loading
+        WebFont.load({ google: { families: ["Onest:300,regular,500,600,700", "Inter:regular,500,600,700"] } });
+    </script>
+</head>
+
+<body class="bg-slate-900 text-slate-100 font-sans">
+
+    <nav class="fixed w-full z-50 bg-slate-900/80 backdrop-blur-md border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-emerald-400 text-3xl">shield_with_heart</span>
+                <span class="text-2xl font-bold tracking-tighter">AEGIS</span>
+            </div>
+
+            <div class="flex items-center gap-6">
+                <ul class="hidden md:flex gap-8 font-medium text-slate-400">
+                    <li><a href="#challenge" class="hover:text-emerald-400 transition">Threats</a></li>
+                    <li><a href="#solution" class="hover:text-emerald-400 transition">Intelligence</a></li>
+                    <li><a href="#impact" class="hover:text-emerald-400 transition">Impact</a></li>
+                </ul>
+
+                <div class="flex items-center gap-4 border-l border-slate-700 pl-6">
+                    <select id="lang-select" class="bg-slate-800 text-xs px-2 py-1 rounded border border-slate-700">
+                        <option value="en">EN</option>
+                        <option value="yo">YO</option>
+                        <option value="ha">HA</option>
+                        <option value="fr">FR</option>
+                    </select>
+                    <a href="login.html"
+                        class="bg-emerald-500 hover:bg-emerald-600 text-slate-900 px-5 py-2 rounded-full font-bold transition flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">lock</span> Login
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <section class="relative pt-32 pb-20 overflow-hidden min-h-screen flex items-center">
+        <div class="max-w-7xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center relative z-10">
+            <div>
+                <div
+                    class="inline-flex items-center gap-2 bg-emerald-500/10 text-emerald-400 px-3 py-1 rounded-full text-sm font-semibold mb-6 border border-emerald-500/20">
+                    <span class="relative flex h-2 w-2">
+                        <span
+                            class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                    Live National Surveillance
+                </div>
+                <h1 data-i18n="hero_heading" class="text-5xl md:text-7xl font-bold leading-tight mb-6">
+                    Predicting Outbreaks <br><span class="text-emerald-400 text-gradient">Securing Nigeria.</span>
+                </h1>
+                <p class="text-lg text-slate-400 mb-8 max-w-xl">
+                    Aegis bridges the gap between state-level health reporting and federal intelligence. We use AI to
+                    turn field data into national life-saving predictions.
+                </p>
+                <div class="flex gap-4">
+                    <a href="login.html"
+                        class="bg-slate-100 text-slate-900 px-8 py-4 rounded-xl font-bold hover:bg-emerald-400 transition">Access
+                        Portal</a>
+                    <a href="#challenge"
+                        class="border border-slate-700 px-8 py-4 rounded-xl font-bold hover:bg-slate-800 transition">Learn
+                        More</a>
+                </div>
+            </div>
+
+            <div class="relative h-[500px] w-full bg-slate-800/50 rounded-3xl border border-slate-700 overflow-hidden">
+                <div id="spline-container" class="absolute inset-0">
+                    <canvas id="canvas3d"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-emerald-500/10 blur-[120px] -z-0"></div>
+        <div class="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500/10 blur-[120px] -z-0"></div>
+    </section>
+
+    <section id="challenge" class="py-24 bg-slate-950">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4">The Challenge</h2>
+                <p class="text-slate-400">Why real-time data integration is a national security priority.</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <div
+                    class="bg-slate-900 p-8 rounded-2xl border border-slate-800 hover:border-emerald-500/50 transition">
+                    <span class="material-symbols-outlined text-emerald-400 text-4xl mb-4">Timer</span>
+                    <h3 class="text-xl font-bold mb-2">Detection Lag</h3>
+                    <p class="text-slate-400 text-sm">Most outbreaks are detected weeks after the first case, slowing
+                        down critical federal response times.</p>
+                </div>
+                <div
+                    class="bg-slate-900 p-8 rounded-2xl border border-slate-800 hover:border-emerald-500/50 transition">
+                    <span class="material-symbols-outlined text-emerald-400 text-4xl mb-4">hub</span>
+                    <h3 class="text-xl font-bold mb-2">Fragmented Data</h3>
+                    <p class="text-slate-400 text-sm">State coordinators often lack a direct, secure channel to feed
+                        data into the national predictive model.</p>
+                </div>
+                <div
+                    class="bg-slate-900 p-8 rounded-2xl border border-slate-800 hover:border-emerald-500/50 transition">
+                    <span class="material-symbols-outlined text-emerald-400 text-4xl mb-4">Bar_Chart</span>
+                    <h3 class="text-xl font-bold mb-2">Resource Mismatch</h3>
+                    <p class="text-slate-400 text-sm">Without predictive placards, the FMT cannot see which states
+                        require urgent intervention before it's too late.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="relative pt-32 pb-12 overflow-hidden flex items-center">
+    </section>
+
+    <section id="portals" class="py-12 bg-slate-900/30">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="grid md:grid-cols-2 gap-8">
+
+                <a href="auth_coordinator.html"
+                    class="group block p-10 rounded-2xl bg-slate-900 border-2 border-emerald-500/20 hover:border-emerald-500 transition-all duration-300">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div
+                            class="w-14 h-14 bg-emerald-500/10 rounded-full flex items-center justify-center group-hover:bg-emerald-500/20 transition">
+                            <span class="material-symbols-outlined text-emerald-400 text-3xl">edit_document</span>
+                        </div>
+                        <h2 class="text-slate-100 text-2xl font-bold">Field Response Portal</h2>
+                    </div>
+                    <p class="text-slate-400 mb-6">Access point for State Coordinators. Authorized to input real-time
+                        field data and disease metrics.</p>
+                    <div class="text-emerald-400 font-bold flex items-center gap-2">
+                        Enter State Portal <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                    </div>
+                </a>
+
+                <a href="auth_federal.html"
+                    class="group block p-10 rounded-2xl bg-slate-900 border-2 border-blue-500/20 hover:border-blue-500 transition-all duration-300">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div
+                            class="w-14 h-14 bg-blue-500/10 rounded-full flex items-center justify-center group-hover:bg-blue-500/20 transition">
+                            <span class="material-symbols-outlined text-blue-400 text-3xl">monitoring</span>
+                        </div>
+                        <h2 class="text-slate-100 text-2xl font-bold">National Command Center</h2>
+                    </div>
+                    <p class="text-slate-400 mb-6">Access point for Federal Monitoring Teams. View national predictive
+                        placards and maps.</p>
+                    <div class="text-blue-400 font-bold flex items-center gap-2">
+                        Enter Federal Portal <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                    </div>
+                </a>
+
+            </div>
+        </div>
+    </section>
+
+    <footer class="py-12 border-t border-slate-800">
+        <div
+            class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6 text-slate-500 text-sm">
+            <p>&copy; 2026 Aegis Intelligence Platform | Federal Ministry of Health Oversight</p>
+            <div class="flex gap-6">
+                <a href="#" class="hover:text-emerald-400 transition">Privacy Protocol</a>
+                <a href="#" class="hover:text-emerald-400 transition">Security Clearance</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@splinetool/runtime@1.3.9/build/runtime.js" type="module"></script>
+    <script src="index.js" type="module"></script>
+</body>
+
+</html>
