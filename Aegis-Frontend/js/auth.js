@@ -57,7 +57,7 @@ const Auth = {
             headers,
         });
 
-        // If 401, token expired — redirect to login
+        // If 401, token expired, redirect to login
         if (response.status === 401) {
             this.logout();
             return;
