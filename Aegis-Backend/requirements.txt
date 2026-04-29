@@ -16,3 +16,5 @@ python-multipart
 pydantic-settings
 asyncpg
 jax[cpu]
+opencensus-ext-azure
+opencensus-ext-fastapi

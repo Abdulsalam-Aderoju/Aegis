@@ -1,8 +1,15 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
+from opencensus.ext.azure.trace_exporter import AzureExporter
+from opencensus.ext.fastapi.fastapi_middleware import FastAPIMiddleware
+from opencensus.trace.samplers import ProbabilitySampler
 from app.database import engine, Base
 from app.routes import auth_routes, coordinator_routes, federal_routes
+from app.config import get_settings
+
+settings = get_settings()
 
 
 # LIFESPAN: Create tables on startup
@@ -29,11 +36,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# ==========================================
 # MIDDLEWARE: CORS
-# ==========================================
-from fastapi.middleware.cors import CORSMiddleware
-
 origins = ["*"]
 
 app.add_middleware(
@@ -44,6 +47,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+app.add_middleware(
+    FastAPIMiddleware,
+    exporter=AzureExporter(
+        connection_string=settings.APPINSIGHTS_CONNECTION_STRING
+    ),
+    sampler=ProbabilitySampler(rate=1.0),
+)
 
 # API routes
 app.include_router(auth_routes.router)
