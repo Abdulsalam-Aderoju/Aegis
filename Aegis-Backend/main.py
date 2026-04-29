@@ -5,9 +5,7 @@ from app.database import engine, Base
 from app.routes import auth_routes, coordinator_routes, federal_routes
 
 
-# ==========================================
 # LIFESPAN: Create tables on startup
-# ==========================================
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Create all tables (use Alembic migrations in production)

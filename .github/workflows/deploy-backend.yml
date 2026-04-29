@@ -1,0 +1,35 @@
+name: Deploy Backend to Azure Container Apps
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'Aegis-Backend/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Log in to Azure
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Log in to ACR
+        run: az acr login --name aegislanreyacr
+
+      - name: Build and Push Docker Image
+        run: |
+          docker build -t aegislanreyacr.azurecr.io/aegis-backend:latest ./Aegis-Backend
+          docker push aegislanreyacr.azurecr.io/aegis-backend:latest
+
+      - name: Deploy to Container Apps
+        run: |
+          az containerapp update \
+            --name aegis-backend \
+            --resource-group rg-aegis-portfolio \
+            --image aegislanreyacr.azurecr.io/aegis-backend:latest
