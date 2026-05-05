@@ -186,6 +186,21 @@ resource "azurerm_application_insights" "aegis_insights" {
   application_type    = "web"
 }
 
+# Availability Test
+resource "azurerm_application_insights_standard_web_test" "aegis_availability" {
+  name                    = "aegis-availability-test"
+  resource_group_name     = azurerm_resource_group.aegis_rg.name
+  location                = azurerm_resource_group.aegis_rg.location
+  application_insights_id = azurerm_application_insights.aegis_insights.id
+  geo_locations           = ["emea-nl-ams-azr", "us-tx-sn1-azr", "apac-sg-sin-azr"]
+  enabled                 = true
+
+  request {
+    url = "https://${azurerm_container_app.aegis_backend.ingress[0].fqdn}/docs"
+  }
+}
+
+
 # CPU Alert
 resource "azurerm_monitor_metric_alert" "backend_cpu" {
   name                = "aegis-backend-cpu"
@@ -282,9 +297,6 @@ output "app_insights_connection_string" {
   value     = azurerm_application_insights.aegis_insights.connection_string
   sensitive = true
 }
-
-
-
 
 
 
