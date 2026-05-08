@@ -19,7 +19,8 @@ The DevOps work in this repo covers everything required to take that application
 
 ## Architecture
 
-> 📌 **[INSERT aegis-final-arch.svg HERE]**
+<img width="741" height="479" alt="Aegis Architecture" src="https://github.com/user-attachments/assets/f34c85d2-01be-42ed-b955-b1e49c6e18d9" />
+
 
 ### How the pieces connect
 
