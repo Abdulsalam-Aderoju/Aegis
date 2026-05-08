@@ -291,7 +291,7 @@ Prometheus and Grafana are the standard stack for self-managed Kubernetes enviro
 ## Related
 
 - 📝 [Read the full article on Substack](https://substack.com/@aderojuabdulsalamolanrewaju/note/p-196304215?utm_source=notes-share-action&r=fcolv) — walkthrough of every decision made in this project
-- 🔗 [Live frontend](kind-bush-0ccea460f.7.azurestaticapps.net)
+- 🔗 [Live frontend](https://kind-bush-0ccea460f.7.azurestaticapps.net/)
 
 ---
 
