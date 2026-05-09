@@ -1,12 +1,9 @@
-# Aegis — Disease Outbreak Prediction System
+# Aegis:  Disease Outbreak Forecasting System
 
 A full-stack web application for government agencies to track and predict disease outbreaks, deployed on Azure with a complete DevOps implementation including Infrastructure as Code, CI/CD pipelines, and observability.
 
-> **Portfolio project** — built to demonstrate end-to-end DevOps engineering on a real application.
+> This is a **Portfolio project** built to demonstrate end-to-end DevOps engineering on a real application.
 
----
-
-## What Does This Project Do?
 
 Aegis is a 3-tier web application:
 - **Frontend** — HTML/CSS/JavaScript interface for coordinators and federal agencies
@@ -245,19 +242,19 @@ A synthetic ping test runs every 5 minutes from 3 geographic locations, tracking
 ## Key Decisions
 
 **Why Azure Container Apps over a VM?**
-A VM requires managing the OS, security patches, runtime and scaling. Container Apps abstracts all of that — I provide a Docker image and Azure handles the rest. It also scales to zero, meaning I pay nothing when there's no traffic.
+A VM requires managing the OS, security patches, runtime and scaling. Container Apps abstracts all of that, I simply provide a Docker image and Azure handles the rest. It also scales to zero, meaning I pay nothing when there's no traffic.
 
 **Why Docker?**
 The application runs identically whether it's on my Windows laptop, in CI/CD, or in Azure. It eliminates environment inconsistency between development and production.
 
 **Why Terraform over clicking in the Azure portal?**
-The portal is fine for exploration but produces infrastructure that can't be reproduced reliably. Terraform gives version control, repeatability, and the ability to destroy and recreate the entire environment from scratch in minutes — which is essential when managing cost on a personal project.
+The portal is fine for exploration but produces infrastructure that can't be reproduced reliably. Terraform gives version control, repeatability, and the ability to destroy and recreate the entire environment from scratch in minutes which is essential when managing cost on a personal project.
 
 **Why separate CI/CD pipelines for frontend and backend?**
-A frontend change shouldn't trigger a backend Docker build and redeployment. Path-based triggers mean each component deploys independently — faster, more targeted, and cheaper.
+A frontend change shouldn't trigger a backend Docker build and redeployment. Path-based triggers mean each component (Frontend and Backend) deploys independently.
 
 **Why Azure Monitor over Prometheus and Grafana?**
-Prometheus and Grafana are the standard stack for self-managed Kubernetes environments where you need to scrape metrics yourself. On Azure's managed services, Azure Monitor receives metrics natively — there's nothing to scrape. Adding Prometheus on top would be redundant complexity.
+Prometheus and Grafana are the standard stack for self-managed Kubernetes environments where you need to scrape metrics yourself. On Azure's managed services like the one we used in this project, Azure Monitor receives metrics natively and there's nothing to scrape. Adding Prometheus on top would be redundant complexity.
 
 ---
 
