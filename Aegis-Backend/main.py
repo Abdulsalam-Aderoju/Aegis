@@ -56,7 +56,7 @@ app.add_middleware(
     sampler=ProbabilitySampler(rate=1.0),
 )
 
-# API routes
+# All API routers for Aegis
 app.include_router(auth_routes.router)
 app.include_router(coordinator_routes.router)
 app.include_router(federal_routes.router)
